@@ -51,7 +51,7 @@ if cuda:
 model.eval() # Set in evaluation mode
 
 dataloader = DataLoader(ImageFolder(opt.image_folder, img_size=opt.img_size),
-                        batch_size=opt.batch_size, shuffle=False, num_workers=opt.n_cpu)
+                        batch_size=opt.batch_size, shuffle=False, num_workers=0)
 
 classes = load_classes(opt.class_path) # Extracts class labels from file
 
@@ -87,7 +87,7 @@ for batch_i, (img_paths, input_imgs) in enumerate(dataloader):
 
 # Bounding-box colors
 #cmap = plt.get_cmap('tab20b')
-cmap = plt.get_cmap('Vega20b')
+cmap = plt.get_cmap('tab20b')
 colors = [cmap(i) for i in np.linspace(0, 1, 20)]
 
 print ('\nSaving images:')
@@ -113,36 +113,38 @@ for img_i, (path, detections) in enumerate(zip(imgs, img_detections)):
     unpad_h = kitti_img_size - pad_y
     unpad_w = kitti_img_size - pad_x
 
-    # Draw bounding boxes and labels of detections
-    if detections is not None:
-        print(type(detections))
-        print(detections.size())
-        unique_labels = detections[:, -1].cpu().unique()
-        n_cls_preds = len(unique_labels)
-        bbox_colors = random.sample(colors, n_cls_preds)
-        for x1, y1, x2, y2, conf, cls_conf, cls_pred in detections:
+    # Save generated txt with detections
+    with open('output/data/%06d.txt' % (img_i), 'w') as f:
+        # Draw bounding boxes and labels of detections
+        if detections is not None:
+            print(type(detections))
+            print(detections.size())
+            
+            unique_labels = detections[:, -1].cpu().unique()
+            n_cls_preds = len(unique_labels)
+            bbox_colors = random.sample(colors, n_cls_preds)
+            for x1, y1, x2, y2, conf, cls_conf, cls_pred in detections:
+                print ('\t+ Label: %s, Conf: %.5f' % (classes[int(cls_pred)], cls_conf.item()))
+                # Rescale coordinates to original dimensions
+                box_h = int(((y2 - y1) / unpad_h) * (img.shape[0]))
+                box_w = int(((x2 - x1) / unpad_w) * (img.shape[1]) )
+                y1 = int(((y1 - pad_y // 2) / unpad_h) * (img.shape[0]))
+                x1 = int(((x1 - pad_x // 2) / unpad_w) * (img.shape[1]))
 
-            print ('\t+ Label: %s, Conf: %.5f' % (classes[int(cls_pred)], cls_conf.item()))
-            # Rescale coordinates to original dimensions
-            box_h = int(((y2 - y1) / unpad_h) * (img.shape[0]))
-            box_w = int(((x2 - x1) / unpad_w) * (img.shape[1]) )
-            y1 = int(((y1 - pad_y // 2) / unpad_h) * (img.shape[0]))
-            x1 = int(((x1 - pad_x // 2) / unpad_w) * (img.shape[1]))
-
-            color = bbox_colors[int(np.where(unique_labels == int(cls_pred))[0])]
-            # Create a Rectangle patch
-            bbox = patches.Rectangle((x1, y1), box_w, box_h, linewidth=2,
-                                    edgecolor=color,
-                                    facecolor='none')
-            # Add the bbox to the plot
-            ax.add_patch(bbox)
-            # Add label
-            plt.text(x1, y1-30, s=classes[int(cls_pred)]+' '+ str('%.4f'%cls_conf.item()), color='white', verticalalignment='top',
-                    bbox={'color': color, 'pad': 0})
-
+                color = bbox_colors[int(np.where(unique_labels == int(cls_pred))[0])]
+                # Create a Rectangle patch
+                bbox = patches.Rectangle((x1, y1), box_w, box_h, linewidth=2,
+                                        edgecolor=color,
+                                        facecolor='none')
+                # Add the bbox to the plot
+                ax.add_patch(bbox)
+                # Add label
+                plt.text(x1, y1-30, s=classes[int(cls_pred)]+' '+ str('%.4f'%cls_conf.item()), color='white', verticalalignment='top',
+                        bbox={'color': color, 'pad': 0})
+                f.write('%s -1 -1 -10 %.5f %.5f %.5f %.5f -1 -1 -1 -1000 -1000 -1000 -10 %.5f\n' % (classes[int(cls_pred)],x1, y1, (box_w+x1), (box_h+y1), cls_conf.item()))
     # Save generated image with detections
     plt.axis('off')
     plt.gca().xaxis.set_major_locator(NullLocator())
     plt.gca().yaxis.set_major_locator(NullLocator())
-    plt.savefig('output/%d.png' % (img_i), bbox_inches='tight', pad_inches=0.0)
+    # plt.savefig('output/%d.png' % (img_i), bbox_inches='tight', pad_inches=0.0)
     plt.close()
