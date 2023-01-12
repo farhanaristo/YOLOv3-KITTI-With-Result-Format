@@ -19,7 +19,7 @@ And Training from Kitti dataset + output Detection with Kitti Format (.txt)
 ## Hi There~ This repo is forked from [packyan](https://github.com/packyan/PyTorch-YOLOv3-kitti)
 
 ## Installation
-    $ git clone https://github.com/packyan/PyTorch-YOLOv3-kitti.git
+    $ git clone https://github.com/farhanaristo/YOLOv3-KITTI-With-Result-Format.git
     $ cd PyTorch-YOLOv3-kitti/
     $ sudo pip3 install -r requirements.txt
 
