@@ -1,6 +1,6 @@
-# PyTorch-YOLOv3-Kitti
+# PyTorch YOLOv3 Kitti Camera 2D Object Detection
 Minimal implementation of YOLOv3 in PyTorch.
-And Training from Kitti dataset
+And Training from Kitti dataset + output Detection with Kitti Format (.txt)
 
 ## Table of Contents
 - [PyTorch-YOLOv3](#pytorch-yolov3-kitti)
@@ -15,7 +15,7 @@ And Training from Kitti dataset
   * [Credit](#credit)
 
 
-## HI THERE~ THIS repo is forked from [eriklindernoren](https://github.com/eriklindernoren/PyTorch-YOLOv3)
+## Hi There~ This repo is forked from [packyan](https://github.com/packyan/PyTorch-YOLOv3-kitti)
 
 ## Installation
     $ git clone https://github.com/packyan/PyTorch-YOLOv3-kitti.git
